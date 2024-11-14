@@ -19,23 +19,27 @@ type KeyPair =
    secretKey: vec nat8;
  };
 service : {
+  addAccount: (nat32, nat32, text) -> (Result_2);
+  authentication: (nat32, nat32, text) -> (Result_2);
   generateMnemonicActor: () -> (text);
   generatePbkdf2Sha512Actor: () -> (text);
+  getListAccount: (nat32) -> (vec record {
+                                    nat32;
+                                    text;
+                                  });
   getListMnemonic: () -> (vec record {
                                 nat32;
                                 text;
                               });
-  getMnemonic: (nat32) -> (Result);
+  getMnemonic: (nat32, text) -> (Result);
   getSupportActor: () -> (record {
                             mnemonic: text;
                             pbkdf2: text;
                           }) query;
-  mnemonicBox: (nat32, text) -> (Result_1);
-  mnemonicIndexToPrivateKey: (nat32) -> (Result_2);
-  mnemonicNew: () -> (Result_1);
+  logOut: (nat32, nat32) -> ();
+  mnemonicNew: (text) -> (Result_1);
   mnemonicToPrivateKey: (vec text) -> (Result_2);
-  mnemonicUnbox: (nat32, text) -> (Result_1);
   setMnemonic: (vec text, text) -> (Result_1);
   setSupportActor: (principal, principal) -> ();
-  sign: (nat32, vec nat8) -> (Result);
+  sign: (nat32, nat32, vec nat8) -> (Result);
 }

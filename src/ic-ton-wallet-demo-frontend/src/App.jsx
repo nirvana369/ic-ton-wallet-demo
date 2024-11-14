@@ -1,8 +1,16 @@
 import { useState, useEffect } from 'react';
-import {ic_ton_wallet_demo_backend} from './../../declarations/ic-ton-wallet-demo-backend';
+import { TonClient, WalletContractV4, internal } from "@ton/ton";
+import { mnemonicNew, mnemonicToPrivateKey, mnemonicToWalletKey,
+  getED25519MasterKeyFromSeed, deriveED25519HardenedKey, deriveEd25519Path,
+  getSecureRandomBytes, getSecureRandomWords, getSecureRandomNumber,
+  hmac_sha512, pbkdf2_sha512
+ } from "@ton/crypto";
+import {ic_ton_wallet_demo_backend} from '../../declarations/ic-ton-wallet-demo-backend';
 import { Buffer } from 'buffer';
 import Wallet from './components/Wallet';
+import { Principal } from '@dfinity/principal';
 import Setting from './components/Setting';
+import Account from './components/Account';
 
 function App() {
   const [greeting, setGreeting] = useState('');
@@ -12,11 +20,16 @@ function App() {
   const [mnemonic, setMnemonic] = useState('');
 
   const [keypair, setKeypair] = useState(null);
+  const [walletId, setWalletId] = useState(0);
 
   const newMnemonic = async () => {
+      if (password == "") {
+        alert("Please input password!");
+        return;
+      }
       const currentTime = new Date().getTime();
 
-      ic_ton_wallet_demo_backend.mnemonicNew().then(() => {
+      ic_ton_wallet_demo_backend.mnemonicNew(password).then(() => {
 
       }).catch((e) => {
         alert(e);
@@ -33,6 +46,10 @@ function App() {
   }
 
   const addMnemonic = async () => {
+      if (password == "") {
+        alert("Please input password!");
+        return;
+      }
       const m = mnemonic.trim().split(' ');
       if (m.length != 24) {
         alert("Invalid mnemonic");
@@ -48,15 +65,21 @@ function App() {
       }
   }
 
-  const getKeyPair = async (index) => {
+  const auth = async (index) => {
+    if (password == "") {
+      alert("Please input password!");
+      return;
+    }
     const currentTime = new Date().getTime();
 
-    const kp = await ic_ton_wallet_demo_backend.mnemonicIndexToPrivateKey(index);
+    setWalletId(index);
+
+    const kp = await ic_ton_wallet_demo_backend.authentication(index, 0, password);
     if (kp.ok) {
       const pubkey = Buffer.from(kp.ok.publicKey);
       const secretkey = Buffer.from(kp.ok.secretKey);
 
-      setKeypair({publicKey: pubkey, secretKey: secretkey, idx : index});
+      setKeypair({publicKey: pubkey, secretKey: secretkey, walletId : index, accountId : 0});
 
     } else {
       console.log(kp);
@@ -82,7 +105,7 @@ function App() {
   }, []);
 
   const getMnemonic = async (idx) => {
-    ic_ton_wallet_demo_backend.getMnemonic(idx).then((rs) => {
+    ic_ton_wallet_demo_backend.getMnemonic(idx, password).then((rs) => {
         if (rs.ok) {
           const mnemonic = Buffer.from(rs.ok);
           setGreeting(mnemonic.toString("utf8"));
@@ -94,20 +117,9 @@ function App() {
     });
   }
 
-  const boxMnemonic = async (idx) => {
-    ic_ton_wallet_demo_backend.mnemonicBox(idx, password).then((rs) => {
-      alert(rs.ok);
-    }).catch((e) => {
-      alert(e);
-    }); 
-  }
-
-  const unboxMnemonic = async (idx) => {
-    ic_ton_wallet_demo_backend.mnemonicUnbox(idx, password).then((rs) => {
-      alert(rs.ok);
-    }).catch((e) => {
-      alert(e);
-    }); 
+  const logOut = async (idx) => {
+    await ic_ton_wallet_demo_backend.logOut(idx, 0);
+    console.log("logout: " + idx);
   }
 
   const inputPassword = event => setPassword(event.target.value);
@@ -119,9 +131,7 @@ function App() {
       <br />
       <br />
       <Setting></Setting>
-      <br />
-      <br />
-      <Wallet kp={keypair}></Wallet>
+      
       <br />
       <section id="greeting">{greeting}</section>
       <br />
@@ -143,8 +153,8 @@ function App() {
           <tr>
             <th>idx</th>
             <th>Public key</th>
-            <th>Gen keypair</th>
-            <th>Mnemonic (support symmetric encryption)</th>
+            <th>Authentication (keypair generation)</th>
+            <th>Mnemonic</th>
           </tr>
         </thead>
         <tbody>
@@ -154,11 +164,10 @@ function App() {
                 <td>{item[0]}</td>
                 <td>{item[1]}</td>
                 <td>
-                  <button type="submit" onClick={() => getKeyPair(item[0])}>Select wallet</button>
+                  <button type="submit" onClick={() => auth(item[0])}>Authentication</button>
+                  <button type="submit" onClick={() => logOut(item[0])}>Logout</button>
                 </td>
                 <td>
-                  <button type="submit" onClick={() => boxMnemonic(item[0])}>box</button>
-                  <button type="submit" onClick={() => unboxMnemonic(item[0])}>unbox</button>
                   <button type="submit" onClick={() => getMnemonic(item[0])}>mnemonic reveal</button>
                 </td>
               </tr>
@@ -167,6 +176,10 @@ function App() {
           
         </tbody>
       </table>
+      <br />
+      <Account walletId={walletId} password={password} keyPairCallback={setKeypair}></Account>
+      <br />
+      <Wallet kp={keypair} password={password}></Wallet>
     </main>
   );
 }

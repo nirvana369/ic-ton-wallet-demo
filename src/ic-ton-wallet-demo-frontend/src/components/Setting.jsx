@@ -1,5 +1,5 @@
-import React, {useCallback, useEffect, useRef, useState} from 'react'
-import {ic_ton_wallet_demo_backend} from './../../../declarations/ic-ton-wallet-demo-backend';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
+import {ic_ton_wallet_demo_backend} from '../../../declarations/ic-ton-wallet-demo-backend';
 import { Buffer } from 'buffer';
 
 
@@ -16,7 +16,7 @@ export default function Setting() {
         setPbkdf2Canister(canister.pbkdf2);
       });
       
-  }, [mnemonicCanisterGenerate, pbkdf2CanisterGenerate]);
+  }, []);
 
     const setCanisters = async () => {
       ic_ton_wallet_demo_backend.setSupportActor(Principal.fromText(process.env.CANISTER_ID_MNEMONIC),
@@ -47,15 +47,35 @@ export default function Setting() {
           <table border={1} width={"100%"}>
           <thead>
             <tr>
-              <td>
+              <th colSpan={3}>
+                <ul>
+                  <li>Mnemonic generates and stores on the server side (supports server-side encryption, you can download encrypted data and decrypt offline in your local.)</li>
+                  <li>Sign messages and generate key pairs on the server side</li>
+                  <li>Please be patient when creating new mnemonic</li>
+                  <li>Remember your password when using the functions: [add mnemonic]/ [new mnemonic]</li>
+                  <li>Need authentication (decrypt & generate keypair) before using your wallet, click [authentication] to use your wallet</li>
+                  <li>Get your mnemonic to enter into any TON wallet by clicking [mnemonic reveal] (if you want to get raw mnemonic)</li>
+                  <li>Add/ derive account : Support SLIP-10 Ed25519 HD Keys & SLIP-21 Symmetric HD Keys (for hierarchical keys)</li>
+                </ul>
+              </th>
+            </tr>
+            <tr>
+              <th>
                 Mnemonic canister id
-              </td>
-              <td>
+              </th>
+              <th>
                 Pbkdf2-sha512 canister id
-              </td>
+              </th>
             </tr>
           </thead>
           <tbody>
+            {/* <tr>
+              <td>{process.env.CANISTER_ID_MNEMONIC}</td>
+              <td>{process.env.CANISTER_ID_PBKDF2_SHA512}</td>
+              <td>
+                <button type="submit" onClick={() => setCanisters()}>Setting deployed canister</button>
+              </td>
+            </tr> */}
             <tr>
               <td>{mnemonicCanister}</td>
               <td>{pbkdf2Canister}</td>
@@ -68,19 +88,6 @@ export default function Setting() {
               <td>{pbkdf2CanisterGenerate}</td>
               <td>
                 <button type="submit" onClick={() => generateCanisters()}>Generate canister</button>
-              </td>
-            </tr>
-            <tr>
-              <td colSpan={3}>
-                <ul>
-                  <li>Mnemonic generates and stores on the server side (supports server-side encryption, you can download encrypted data and decrypt offline in your local.)</li>
-                  <li>Sign messages and generate key pairs on the server side (Client don't have mnemonic & keypair)</li>
-                  <li>Please be patient when creating new mnemonic</li>
-                  <li>Remember your password when using the functions: [add mnemonic]/ [box]/ [unbox]</li>
-                  <li>Need Unbox(decrypt) before using your wallet, click [select wallet] to use your wallet</li>
-                  <li>Get your mnemonic to enter into any TON wallet by clicking [mnemonic reveal] (if you want to get raw mnemonic, click [unbox] first)</li>
-                  <li>Support SLIP-10 Ed25519 HD Keys (for hierarchical keys) / implemented but not ready in this version</li>
-                </ul>
               </td>
             </tr>
           </tbody>

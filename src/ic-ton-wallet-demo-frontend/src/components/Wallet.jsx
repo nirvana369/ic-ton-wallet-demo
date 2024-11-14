@@ -1,62 +1,65 @@
 import React, {useCallback, useEffect, useRef, useState} from 'react'
-import {ic_ton_wallet_demo_backend} from './../../../declarations/ic-ton-wallet-demo-backend';
-import { TonClient, WalletContractV4, internal } from "@ton/ton";
+import {ic_ton_wallet_demo_backend} from '../../../declarations/ic-ton-wallet-demo-backend';
+import { TonClient, WalletContractV4, internal, fromNano } from "@ton/ton";
 import { Buffer } from 'buffer';
+import { Address } from '@ton/ton';
+import Transaction from './Transaction';
 
-export default function Wallet({ kp }) {
+export default function Wallet({ kp, password }) {
 
-  const [walletAddress, setWalletAddress] = useState('');
-  const [walletBalance, setWalletBalance] = useState(0);
-  const [transferWalletAddress, setTransferWalletAddress] = useState('');
-  const [transferWalletBalance, setTransferWalletBalance] = useState(0);
+    const [walletAddress, setWalletAddress] = useState('');
+    const [walletBalance, setWalletBalance] = useState(0);
+    const [transferWalletAddress, setTransferWalletAddress] = useState('');
+    const [transferWalletBalance, setTransferWalletBalance] = useState(0);
 
-  
-// Create Client
-  const client = new TonClient({
-      // endpoint: 'https://toncenter.com/api/v2/jsonRPC',
-      endpoint: 'https://testnet.toncenter.com/api/v2/jsonRPC',
-  });
-  
-  const workchain = 0; // Usually you need a workchain 0
+    
+  // Create Client
+    const client = new TonClient({
+        // endpoint: 'https://toncenter.com/api/v2/jsonRPC',
+        endpoint: 'https://testnet.toncenter.com/api/v2/jsonRPC',
+    });
+    
+    const workchain = 0; // Usually you need a workchain 0
 
-  useEffect(() => {
-      if (kp) {
-          console.log(kp);
-          const wallet = WalletContractV4.create({ workchain, publicKey: kp.publicKey });
+    useEffect(() => {
+        if (kp) {
+            console.log(kp);
+            const wallet = WalletContractV4.create({ workchain, publicKey: kp.publicKey });
+            const contract = client.open(wallet);
+
+            setWalletAddress(wallet.address.toString(true, true, true));
+            // Get balance
+            contract.getBalance().then((balance) => {
+                setWalletBalance(balance);
+            });
+        }
+
+    }, [kp]);
+
+    const getWalletInfo = async () => {
+        const res = await ic_ton_wallet_demo_backend.authentication(kp.walletId, kp.accountId, password);
+        if (res.ok) {
+          
+          const wallet = WalletContractV4.create({ workchain, publicKey: Buffer.from(res.ok.publicKey) });
           const contract = client.open(wallet);
 
           setWalletAddress(wallet.address.toString(true, true, true));
-          // Get balance
-          contract.getBalance().then((balance) => {
-              setWalletBalance(balance);
-          });
-      }
-
-  }, [kp]);
-
-  const getWalletInfo = async () => {
-      const res = await ic_ton_wallet_demo_backend.mnemonicIndexToPrivateKey(kp.idx);
-      if (res.ok) {
-        
-        const wallet = WalletContractV4.create({ workchain, publicKey: Buffer.from(res.ok.publicKey) });
-        const contract = client.open(wallet);
-
-        setWalletAddress(wallet.address.toString(true, true, true));
-          // Get balance
-          contract.getBalance().then((balance) => {
-              setWalletBalance(balance);
-          });
-        console.log("refresh completed");
-      } else {
-        console.log(kp);
-        alert(kp.err);
-      }
+          // setWalletAddress(Address(wallet.address).toString(true, true, false, true));
+            // Get balance
+            contract.getBalance().then((balance) => {
+                setWalletBalance(balance);
+            });
+          console.log("refresh completed");
+        } else {
+          console.log(kp);
+          alert(kp.err);
+        }
     }
 
 
     const sign = async (cell) => {
       return new Promise((resolve, reject) => {
-        ic_ton_wallet_demo_backend.sign(kp.idx, cell.hash()).then((signRs) => {
+        ic_ton_wallet_demo_backend.sign(kp.walletId, kp.accountId, cell.hash()).then((signRs) => {
             if (signRs.ok) {
               console.log("sign completed");
               resolve(Buffer.from(signRs.ok));
@@ -128,7 +131,7 @@ export default function Wallet({ kp }) {
                 </tr>
                 <tr>
                   <td>Wallet balance:</td>
-                  <td>{walletBalance + ""}</td>
+                  <td>{fromNano(walletBalance)}</td>
                 </tr>
                 <tr>
                   <td>Transfer to wallet address:</td>
@@ -136,11 +139,14 @@ export default function Wallet({ kp }) {
                 </tr>
                 <tr>
                   <td>Transfer amount:</td>
-                  <td><input id="balance" alt="Number" type="number" value={transferWalletBalance} onChange={setBalance} /></td>
+                  <td>
+                    <input id="balance" alt="Number" type="number" value={transferWalletBalance} onChange={setBalance} />
+                    <button type="submit" onClick={() => transfer()}>transfer</button>
+                  </td>
                 </tr>
                 <tr>
                     <td colSpan={2}>
-                        <button type="submit" onClick={() => transfer()}>transfer</button>
+                      <Transaction isTestnet={true} myAddress={walletAddress}></Transaction>
                     </td>
                 </tr>
           </tbody>
