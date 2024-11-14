@@ -1,0 +1,27 @@
+{
+  "canisters": {
+    "ic-ton-wallet-demo-backend": {
+      "type": "custom",
+      "wasm": "src/ic-ton-wallet-demo-backend/ic-ton-wallet-demo-backend.wasm",
+      "candid": "src/ic-ton-wallet-demo-backend/ic-ton-wallet-demo-backend.did"
+    },
+    "ic-ton-wallet-demo-frontend": {
+      "dependencies": [
+        "ic-ton-wallet-demo-backend"
+      ],
+      "source": [
+        "src/ic-ton-wallet-demo-frontend/dist"
+      ],
+      "type": "assets",
+      "workspace": "ic-ton-wallet-demo-frontend"
+    }
+  },
+  "defaults": {
+    "build": {
+      "args": "",
+      "packtool": ""
+    }
+  },
+  "output_env_file": ".env",
+  "version": 1
+}
