@@ -1,0 +1,7 @@
+// Version: 1.0.0
+actor {
+  stable var WALLET_INDEX : Nat32;
+  stable var _mnemonic : [(Nat32, Blob)];
+  stable var mnemonicActor : ?Text;
+  stable var pbkdf2Actor : ?Text
+};

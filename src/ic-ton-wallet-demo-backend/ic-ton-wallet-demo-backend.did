@@ -1,0 +1,45 @@
+type Result_2 = 
+ variant {
+   err: text;
+   ok: KeyPair;
+ };
+type Result_1 = 
+ variant {
+   err: text;
+   ok: text;
+ };
+type Result = 
+ variant {
+   err: text;
+   ok: vec nat8;
+ };
+type KeyPair = 
+ record {
+   publicKey: vec nat8;
+   secretKey: vec nat8;
+ };
+service : {
+  addAccount: (nat32, nat32, text) -> (Result_2);
+  authentication: (nat32, nat32, text) -> (Result_2);
+  generateMnemonicActor: () -> (text);
+  generatePbkdf2Sha512Actor: () -> (text);
+  getListAccount: (nat32) -> (vec record {
+                                    nat32;
+                                    text;
+                                  });
+  getListMnemonic: () -> (vec record {
+                                nat32;
+                                text;
+                              });
+  getMnemonic: (nat32, text) -> (Result);
+  getSupportActor: () -> (record {
+                            mnemonic: text;
+                            pbkdf2: text;
+                          }) query;
+  logOut: (nat32, nat32) -> ();
+  mnemonicNew: (text) -> (Result_1);
+  mnemonicToPrivateKey: (vec text) -> (Result_2);
+  setMnemonic: (vec text, text) -> (Result_1);
+  setSupportActor: (principal, principal) -> ();
+  sign: (nat32, nat32, vec nat8) -> (Result);
+}

@@ -23,5 +23,3 @@ dist/
 
 # environment variables
 .env
-
-src/ic-ton-wallet-demo-backend/
